@@ -10,3 +10,4 @@
     * Explicitly tag
     * Generate random numbers
     * Have context maintaing counter?
+    * Or just use a vector ...
