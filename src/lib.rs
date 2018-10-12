@@ -47,16 +47,6 @@ impl Add<f64> for Dual {
     }
 }
 
-impl Add<Dual> for f64 {
-    type Output = Dual;
-
-    fn add(self, rhs: Dual) -> Dual {
-        Dual {
-            a: self + rhs.a,
-            b: rhs.b
-        }
-    }
-}
 
 impl Mul for Dual {
     type Output = Self;
@@ -80,14 +70,19 @@ impl Mul<f64> for Dual {
     }
 }
 
+impl Add<Dual> for f64 {
+    type Output = Dual;
+
+    fn add(self, rhs: Dual) -> Dual {
+        rhs + self
+    }
+}
+
 impl Mul<Dual> for f64 {
     type Output = Dual;
 
     fn mul(self, rhs: Dual) -> Dual {
-        Dual {
-            a: self * rhs.a,
-            b: self * rhs.b,
-        }
+        rhs * self
     }
 }
 
