@@ -1,0 +1,6 @@
+[package]
+name = "ad"
+version = "0.1.0"
+authors = ["Øystein Hovind <oystein.hovind@folq.no>"]
+
+[dependencies]
