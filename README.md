@@ -1,6 +1,6 @@
 # Dual
 
--[ ] Implement standard functions
+-[ ] Implement standard functions (sin, cos, signum, abs, pow, sqrt)
 -[ ] Make generic Dual<T> { a: T, b: T }
 -[ ] Add vector support
 
