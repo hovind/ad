@@ -10,7 +10,7 @@ use na::dimension::*;
 
 fn main() {
    let x = Dual::<f64, U3>::new(1.0f64);
-   println!("{}", x.idx(0) * x.idx(1) * x.idx(1) + x.idx(1));
+   println!("{}", x.idx(0) * x.idx(1) * x.idx(1) + 2.0*x.idx(1));
 }
 
 //#[derive(Clone, Copy, Debug, PartialEq)]
@@ -77,6 +77,36 @@ where
     }
 }
 
+impl<D> Mul<Dual<f64, D>> for f64
+where
+    D: Dim,
+    DefaultAllocator: Allocator<f64, D>,
+{
+    type Output = Dual<f64, D>;
+
+    fn mul(self, rhs: Dual<f64, D>) -> Dual<f64, D> {
+        Dual {
+            a: self * rhs.a,
+            b: self * rhs.b,
+        }
+    }
+}
+/*impl<S, D> Mul<S> for Dual<S, D>
+where
+    S: Real + Mul<VectorN<S, D>, Output=VectorN<S, D>>,
+    D: Dim,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type Output = Self;
+
+    fn mul(self, rhs: S) -> Dual<S, D> {
+        Dual {
+            a: self.a * rhs,
+            b: self.b * rhs,
+        }
+    }
+}*/
+
 impl<S, D> fmt::Display for Dual<S, D>
 where
     S: Real + fmt::Display,
@@ -91,6 +121,14 @@ where
         Ok(())
     }
 }
+
+/*impl Real<S, D> for Dual<S, D>
+where
+    S: Real,
+    D: Dim,
+    DefaultAllocator: Allocator<S, D>,
+{
+}*/
 
 /*fn main() {
     let x = lib::Dual::new(2.0f64);
