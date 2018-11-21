@@ -122,12 +122,32 @@ where
     }
 }
 
+impl<S, D> Real for Dual<S, D>
+where
+    S: Real,
+    D: Dim,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn sin(self) -> Dual<S, D> {
+        Dual {
+            a : self.a.sin(),
+            b : self.b * self.a.cos(),
+        }
+    }
+
+}
 /*impl Real<S, D> for Dual<S, D>
 where
     S: Real,
     D: Dim,
     DefaultAllocator: Allocator<S, D>,
 {
+    fn sin(self) -> Self {
+        Dual {
+            a : self.a.sin(),
+            b : self.b * self.a.cos(),
+    }
+
 }*/
 
 /*fn main() {
