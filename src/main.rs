@@ -8,12 +8,23 @@ use na::{DefaultAllocator, Dim, Real, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
 
-fn main() {
-   let x = Dual::<f64, U3>::new(1.0f64);
-   println!("{}", x.idx(0) * x.idx(1) * x.idx(1) + 2.0*x.idx(1));
+fn f<S : Real>(x: VectorN<S, U2>) -> VectorN<S, U2>
+{
+    VectorN::<S, U2>::new(x[0] + x[1], x[0]*x[1])
 }
 
-//#[derive(Clone, Copy, Debug, PartialEq)]
+fn main() {
+   let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
+   let dx = Dual::<f64, U2>::new(x);
+   let y = f(dx);
+   println!("{}", y);
+   /*let x = Dual::<f64, U2>::new(1.0f64);
+   let y = Dual::<f64, U2>::new(2.0f64);
+   let v = VectorN::<Dual<f64, U2>, U2>::new(x, y);
+   println!("{}", x.idx(0) * x.idx(1) * x.idx(1) + 2.0*x.idx(1));*/
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Dual<S, D>
 where
     S: Real,
@@ -30,17 +41,19 @@ where
     D: Dim + DimName,
     DefaultAllocator: Allocator<S, D>,
 {
-    pub fn new(value : S) -> Dual<S, D> {
-        Dual {
-            a: value,
-            b: VectorN::<S, D>::from_fn(|_, _| S::one()),
-        }
-    }
-    pub fn idx(&self, index : usize) -> Dual<S, D> {
-        Dual {
-            a: self.a,
-            b: VectorN::<S, D>::from_fn(|i : usize, _| if i == index { S::one() } else { S::zero() } ),
-        }
+    pub fn new(x : VectorN<S, D>) -> VectorN<Dual<S, D>, D> {
+        VectorN::<S, D>::from_fn(|i : usize, _| -> Dual<S, D> {
+                Dual {
+                    a: x[i],
+                    b: VectorN::<S, D>::from_fn(|j : usize, _| -> S {
+                            if i == j {
+                                S::one()
+                            } else {
+                                S::zero()
+                            }
+                     }),
+                }
+        })
     }
 
 }
