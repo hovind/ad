@@ -20,7 +20,7 @@ fn main() {
    println!("{}", y);*/
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Dual<S, D>
 where
     S: Real,
@@ -38,7 +38,7 @@ where
     DefaultAllocator: Allocator<S, D>,
 {
     pub fn new(x : VectorN<S, D>) -> VectorN<Dual<S, D>, D> {
-        VectorN::<S, D>::from_fn(|i : usize, _| -> Dual<S, D> {
+        VectorN::<Dual<S, D>, D>::from_fn(|i : usize, _| -> Dual<S, D> {
             Dual {
                 a: x[i],
                 b: VectorN::<S, D>::from_fn(|j : usize, _| -> S {
@@ -51,7 +51,6 @@ where
             }
         })
     }
-
 }
 
 impl<S, D> Add for Dual<S, D>
@@ -86,6 +85,12 @@ where
     }
 }
 
+
+/* Should be
+ * impl<S, D> Mul<Dual<S, D>> for S
+ * where
+ *     S: Mul<VectorN<S, D>, Output=VectorN<S, D>> …
+ */
 impl<D> Mul<Dual<f64, D>> for f64
 where
     D: Dim,
