@@ -3,27 +3,31 @@ extern crate num_traits as num;
 extern crate alga as al;
 
 use std::{f64, char, fmt};
+use std::fmt::Debug;
+use std::cmp::PartialEq;
 use std::ops::{Add, Mul};
 use na::{DefaultAllocator, Dim, Real, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
 
-fn f<S : Real>(x: VectorN<S, U2>) -> VectorN<S, U3>
+fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
+where
+    S : Add<S, Output=S> + Mul<S, Output=S> + Debug + Copy + PartialEq + 'static,
 {
-    VectorN::<S, U3>::new(x[0] + x[1], x[0]*x[1], x[0] - x[1])
+    VectorN::<S, U3>::new(x[0] + x[1], x[0]*x[1], x[0] + x[1])
 }
 
 fn main() {
    let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
    let dx = Dual::<f64, U2>::new(x);
-   /*let y = f(dx);
-   println!("{}", y);*/
+   let y = f(dx);
+   println!("{}", y);
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Dual<S, D>
 where
-    S: Real + Copy,
+    S: Real + Copy + PartialEq,
     D: Dim,
     VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
