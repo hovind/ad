@@ -15,16 +15,17 @@ fn f<S : Real>(x: VectorN<S, U2>) -> VectorN<S, U3>
 
 fn main() {
    let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
-   /*let dx = Dual::<f64, U2>::new(x);
-   let y = f(dx);
+   let dx = Dual::<f64, U2>::new(x);
+   /*let y = f(dx);
    println!("{}", y);*/
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Dual<S, D>
 where
-    S: Real,
+    S: Real + Copy,
     D: Dim,
+    VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     a: S,
@@ -33,9 +34,11 @@ where
 
 impl<S, D> Dual<S, D>
 where
-    S: Real,
+    S: Real + Copy,
     D: Dim + DimName,
-    DefaultAllocator: Allocator<S, D>,
+    VectorN<S, D>: Copy,
+    VectorN<Dual<S, D>, D>: Copy,
+    DefaultAllocator: Allocator<S, D> + Allocator<Dual<S, D>, D>,
 {
     pub fn new(x : VectorN<S, D>) -> VectorN<Dual<S, D>, D> {
         VectorN::<Dual<S, D>, D>::from_fn(|i : usize, _| -> Dual<S, D> {
@@ -57,6 +60,7 @@ impl<S, D> Add for Dual<S, D>
 where
     S: Real,
     D: Dim,
+    VectorN<S, D>: Copy + Clone,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -71,8 +75,9 @@ where
 
 impl<S, D> Mul for Dual<S, D>
 where
-    S: Real + Mul<VectorN<S, D>, Output=VectorN<S, D>>,
+    S: Real + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
     D: Dim,
+    VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -94,6 +99,7 @@ where
 impl<D> Mul<Dual<f64, D>> for f64
 where
     D: Dim,
+    VectorN<f64, D>: Copy,
     DefaultAllocator: Allocator<f64, D>,
 {
     type Output = Dual<f64, D>;
@@ -108,8 +114,9 @@ where
 
 impl<S, D> fmt::Display for Dual<S, D>
 where
-    S: Real + fmt::Display,
+    S: Real + fmt::Display + Copy,
     D: Dim,
+    VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
