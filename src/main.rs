@@ -149,7 +149,8 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.a);
         for (index, num) in self.b.into_iter().enumerate() {
-            write!(f, " + {}\u{03B5}{}", num, char::from_u32(0x2080 + index as u32).unwrap_or('\u{2099}'));
+            let sign = if num.is_sign_negative() { '-' } else { '+' };
+            write!(f, " {} {}\u{03B5}{}", sign, num.abs(), char::from_u32(0x2080 + index as u32).unwrap_or('\u{2099}'));
         }
         Ok(())
     }
