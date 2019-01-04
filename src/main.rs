@@ -5,16 +5,22 @@ extern crate alga as al;
 use std::{f64, char, fmt};
 use std::fmt::Debug;
 use std::cmp::PartialEq;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use na::{DefaultAllocator, Dim, Real, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
 where
-    S : Add<S, Output=S> + Mul<S, Output=S> + Debug + Copy + PartialEq + 'static,
+    S : Add<S, Output=S>
+      + Mul<S, Output=S>
+      + Sub<S, Output=S>
+      + Debug
+      + Copy
+      + PartialEq
+      + 'static,
 {
-    VectorN::<S, U3>::new(x[0] + x[1], x[0]*x[1], x[0] + x[1])
+    VectorN::<S, U3>::new(x[0] + x[1], x[0]*x[1], x[0] - x[1])
 }
 
 fn main() {
@@ -73,6 +79,23 @@ where
         Dual {
             a: self.a + rhs.a,
             b: self.b + rhs.b,
+        }
+    }
+}
+
+impl<S, D> Sub for Dual<S, D>
+where
+    S: Real,
+    D: Dim,
+    VectorN<S, D>: Copy + Clone,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: Dual<S, D>) -> Dual<S, D> {
+        Dual {
+            a: self.a - rhs.a,
+            b: self.b - rhs.b,
         }
     }
 }
