@@ -522,7 +522,10 @@ where
         unimplemented!();
     }
     fn ln(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.ln(),
+            b: self.b / self.a,
+        }
     }
     fn log(self, base: Self) -> Self {
         unimplemented!();
@@ -603,7 +606,7 @@ where
         unimplemented!();
     }
     fn integer_decode(self) -> (u64, i16, i8) {
-        unimplemented!();
+        self.a.integer_decode()
     }
     fn epsilon() -> Self {
         unimplemented!();
