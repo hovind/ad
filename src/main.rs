@@ -5,10 +5,10 @@ extern crate num_traits as num;
 use na::allocator::Allocator;
 use na::dimension::*;
 use na::{DefaultAllocator, Dim, VectorN};
-use num::{Float, Num, ParseFloatError};
+use num::{Float, Num};
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Rem, Sub, SubAssign};
 use std::{char, f64, fmt};
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
@@ -355,5 +355,212 @@ where
                 b: VectorN::<S, D>::zeros(),
             }
         })
+    }
+}
+
+impl<S, D> Neg for Dual<S, D>
+where
+    S: Float + Debug + Copy,
+    D: Dim,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type Output = Dual<S, D>;
+
+    fn neg(self) -> Self::Output {
+        Dual {
+            a: -self.a,
+            b: -self.b,
+        }
+    }
+}
+
+impl<S, D> Float for Dual<S, D>
+where
+    S: Num
+        + Float
+        + Debug
+        + Display
+        + Mul<VectorN<S, D>, Output = VectorN<S, D>>
+        + AddAssign
+        + DivAssign
+        + SubAssign,
+    D: Dim + DimName,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn nan() -> Self {
+        Dual {
+            a: S::nan(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
+    }
+    fn infinity() -> Self {
+        unimplemented!();
+    }
+    fn neg_infinity() -> Self {
+        unimplemented!();
+    }
+    fn neg_zero() -> Self {
+        unimplemented!();
+    }
+    fn min_value() -> Self {
+        unimplemented!();
+    }
+    fn min_positive_value() -> Self {
+        unimplemented!();
+    }
+    fn max_value() -> Self {
+        unimplemented!();
+    }
+    fn is_nan(self) -> bool {
+        unimplemented!();
+    }
+    fn is_infinite(self) -> bool {
+        unimplemented!();
+    }
+    fn is_finite(self) -> bool {
+        unimplemented!();
+    }
+    fn is_normal(self) -> bool {
+        unimplemented!();
+    }
+    fn classify(self) -> core::num::FpCategory {
+        unimplemented!();
+    }
+    fn floor(self) -> Self {
+        unimplemented!();
+    }
+    fn ceil(self) -> Self {
+        unimplemented!();
+    }
+    fn round(self) -> Self {
+        unimplemented!();
+    }
+    fn trunc(self) -> Self {
+        unimplemented!();
+    }
+    fn fract(self) -> Self {
+        unimplemented!();
+    }
+    fn abs(self) -> Self {
+        unimplemented!();
+    }
+    fn signum(self) -> Self {
+        unimplemented!();
+    }
+    fn is_sign_positive(self) -> bool {
+        unimplemented!();
+    }
+    fn is_sign_negative(self) -> bool {
+        unimplemented!();
+    }
+    fn mul_add(self, a: Self, b: Self) -> Self {
+        unimplemented!();
+    }
+    fn recip(self) -> Self {
+        unimplemented!();
+    }
+    fn powi(self, n: i32) -> Self {
+        unimplemented!();
+    }
+    fn powf(self, n: Self) -> Self {
+        unimplemented!();
+    }
+    fn sqrt(self) -> Self {
+        unimplemented!();
+    }
+    fn exp(self) -> Self {
+        unimplemented!();
+    }
+    fn exp2(self) -> Self {
+        unimplemented!();
+    }
+    fn ln(self) -> Self {
+        unimplemented!();
+    }
+    fn log(self, base: Self) -> Self {
+        unimplemented!();
+    }
+    fn log2(self) -> Self {
+        unimplemented!();
+    }
+    fn log10(self) -> Self {
+        unimplemented!();
+    }
+    fn max(self, other: Self) -> Self {
+        unimplemented!();
+    }
+    fn min(self, other: Self) -> Self {
+        unimplemented!();
+    }
+    fn abs_sub(self, other: Self) -> Self {
+        unimplemented!();
+    }
+    fn cbrt(self) -> Self {
+        unimplemented!();
+    }
+    fn hypot(self, other: Self) -> Self {
+        unimplemented!();
+    }
+    fn sin(self) -> Self {
+        unimplemented!();
+    }
+    fn cos(self) -> Self {
+        unimplemented!();
+    }
+    fn tan(self) -> Self {
+        unimplemented!();
+    }
+    fn asin(self) -> Self {
+        unimplemented!();
+    }
+    fn acos(self) -> Self {
+        unimplemented!();
+    }
+    fn atan(self) -> Self {
+        unimplemented!();
+    }
+    fn atan2(self, other: Self) -> Self {
+        unimplemented!();
+    }
+    fn sin_cos(self) -> (Self, Self) {
+        unimplemented!();
+    }
+    fn exp_m1(self) -> Self {
+        unimplemented!();
+    }
+    fn ln_1p(self) -> Self {
+        unimplemented!();
+    }
+    fn sinh(self) -> Self {
+        unimplemented!();
+    }
+    fn cosh(self) -> Self {
+        unimplemented!();
+    }
+    fn tanh(self) -> Self {
+        unimplemented!();
+    }
+    fn asinh(self) -> Self {
+        unimplemented!();
+    }
+    fn acosh(self) -> Self {
+        unimplemented!();
+    }
+    fn atanh(self) -> Self {
+        unimplemented!();
+    }
+    fn integer_decode(self) -> (u64, i16, i8) {
+        unimplemented!();
+    }
+    fn epsilon() -> Self {
+        unimplemented!();
+    }
+    fn to_degrees(self) -> Self {
+        unimplemented!();
+    }
+    fn to_radians(self) -> Self {
+        unimplemented!();
     }
 }
