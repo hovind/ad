@@ -3,12 +3,13 @@ extern crate num_traits as num;
 extern crate alga as al;
 
 use std::{f64, char, fmt};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::cmp::PartialEq;
 use std::ops::{Add, Mul, Sub};
-use na::{DefaultAllocator, Dim, Real, VectorN};
+use na::{DefaultAllocator, Dim, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
+use num::Float;
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
 where
@@ -33,7 +34,8 @@ fn main() {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Dual<S, D>
 where
-    S: Real + Copy + PartialEq,
+    /* What is a static type parameter? */
+    S: Float + Copy + PartialEq + 'static + Debug,
     D: Dim,
     VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
@@ -44,7 +46,7 @@ where
 
 impl<S, D> Dual<S, D>
 where
-    S: Real + Copy,
+    S: Copy + Debug + Float,
     D: Dim + DimName,
     VectorN<S, D>: Copy,
     VectorN<Dual<S, D>, D>: Copy,
@@ -68,9 +70,9 @@ where
 
 impl<S, D> Add for Dual<S, D>
 where
-    S: Real,
+    S: Add<S, Output=S> + Debug + Float,
     D: Dim,
-    VectorN<S, D>: Copy + Clone,
+    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy + Clone,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -85,9 +87,9 @@ where
 
 impl<S, D> Sub for Dual<S, D>
 where
-    S: Real,
+    S: Debug + Float,
     D: Dim,
-    VectorN<S, D>: Copy + Clone,
+    VectorN<S, D>: Sub <VectorN<S, D>, Output=VectorN<S, D>> + Copy + Clone,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -102,9 +104,9 @@ where
 
 impl<S, D> Mul for Dual<S, D>
 where
-    S: Real + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    S: Debug + Float + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
     D: Dim,
-    VectorN<S, D>: Copy,
+    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -139,9 +141,9 @@ where
     }
 }
 
-impl<S, D> fmt::Display for Dual<S, D>
+impl<S, D> Display for Dual<S, D>
 where
-    S: Real + fmt::Display + Copy,
+    S: Float + Debug + Display + Copy,
     D: Dim,
     VectorN<S, D>: Copy,
     DefaultAllocator: Allocator<S, D>,
@@ -153,5 +155,17 @@ where
             write!(f, " {} {}\u{03B5}{}", sign, num.abs(), char::from_u32(0x2080 + index as u32).unwrap_or('\u{2099}'))?;
         }
         Ok(())
+    }
+}
+
+impl<S, D> std::cmp::PartialOrd for Dual<S, D>
+where
+    S: Float + Debug + Display + Copy,
+    D: Dim,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn partial_cmp(&self, other: &Dual<S, D>) -> Option<std::cmp::Ordering> {
+        self.a.partial_cmp(&other.a)
     }
 }
