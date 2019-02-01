@@ -1,34 +1,34 @@
+extern crate alga as al;
 extern crate nalgebra as na;
 extern crate num_traits as num;
-extern crate alga as al;
 
-use std::{f64, char, fmt};
-use std::fmt::{Debug, Display};
-use std::cmp::PartialEq;
-use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
-use na::{DefaultAllocator, Dim, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
-use num::{Float, Num};
+use na::{DefaultAllocator, Dim, VectorN};
+use num::{Float, Num, ParseFloatError};
+use std::cmp::PartialEq;
+use std::fmt::{Debug, Display};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
+use std::{char, f64, fmt};
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
 where
-    S : Add<S, Output=S>
-      + Mul<S, Output=S>
-      + Sub<S, Output=S>
-      + Debug
-      + Copy
-      + PartialEq
-      + 'static,
+    S: Add<S, Output = S>
+        + Mul<S, Output = S>
+        + Sub<S, Output = S>
+        + Debug
+        + Copy
+        + PartialEq
+        + 'static,
 {
-    VectorN::<S, U3>::new(x[0] + x[1], x[0]*x[1], x[0] - x[1])
+    VectorN::<S, U3>::new(x[0] + x[1], x[0] * x[1], x[0] - x[1])
 }
 
 fn main() {
-   let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
-   let dx = Dual::<f64, U2>::new(x);
-   let y = f(dx);
-   println!("{}", y);
+    let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
+    let dx = Dual::<f64, U2>::new(x);
+    let y = f(dx);
+    println!("{}", y);
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -52,17 +52,19 @@ where
     VectorN<Dual<S, D>, D>: Copy,
     DefaultAllocator: Allocator<S, D> + Allocator<Dual<S, D>, D>,
 {
-    pub fn new(x : VectorN<S, D>) -> VectorN<Dual<S, D>, D> {
-        VectorN::<Dual<S, D>, D>::from_fn(|i : usize, _| -> Dual<S, D> {
+    pub fn new(x: VectorN<S, D>) -> VectorN<Dual<S, D>, D> {
+        VectorN::<Dual<S, D>, D>::from_fn(|i: usize, _| -> Dual<S, D> {
             Dual {
                 a: x[i],
-                b: VectorN::<S, D>::from_fn(|j : usize, _| -> S {
-                    if i == j {
-                        S::one()
-                    } else {
-                        S::zero()
-                    }
-                }),
+                b: VectorN::<S, D>::from_fn(
+                    |j: usize, _| -> S {
+                        if i == j {
+                            S::one()
+                        } else {
+                            S::zero()
+                        }
+                    },
+                ),
             }
         })
     }
@@ -70,9 +72,9 @@ where
 
 impl<S, D> Add for Dual<S, D>
 where
-    S: Add<S, Output=S> + Debug + Float,
+    S: Add<S, Output = S> + Debug + Float,
     D: Dim,
-    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy + Clone,
+    VectorN<S, D>: Add<VectorN<S, D>, Output = VectorN<S, D>> + Copy + Clone,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -89,7 +91,7 @@ impl<S, D> Sub for Dual<S, D>
 where
     S: Debug + Float,
     D: Dim,
-    VectorN<S, D>: Sub <VectorN<S, D>, Output=VectorN<S, D>> + Copy + Clone,
+    VectorN<S, D>: Sub<VectorN<S, D>, Output = VectorN<S, D>> + Copy + Clone,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -104,9 +106,9 @@ where
 
 impl<S, D> Mul for Dual<S, D>
 where
-    S: Debug + Float + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    S: Debug + Float + Mul<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
     D: Dim,
-    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    VectorN<S, D>: Add<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     type Output = Self;
@@ -119,6 +121,45 @@ where
     }
 }
 
+impl<S, D> Div for Dual<S, D>
+where
+    S: Debug + Float + Mul<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
+    D: Dim,
+    VectorN<S, D>:
+        Sub<VectorN<S, D>, Output = VectorN<S, D>> + Div<S, Output = VectorN<S, D>> + Copy + Clone,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type Output = Self;
+    /* Test this properly, cowboy stuff */
+    fn div(self, rhs: Dual<S, D>) -> Dual<S, D> {
+        Dual {
+            a: self.a / rhs.a,
+            b: (self.a * rhs.b - rhs.a * self.b) / self.a / self.a,
+        }
+    }
+}
+
+impl<S, D> Rem for Dual<S, D>
+where
+    S: Debug + Float + Mul<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
+    D: Dim + DimName,
+    VectorN<S, D>: Add<VectorN<S, D>, Output = VectorN<S, D>> + Copy + Clone,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type Output = Self;
+
+    fn rem(self, rhs: Dual<S, D>) -> Dual<S, D> {
+        let reminder = self.a % rhs.a;
+        Dual {
+            a: reminder,
+            b: if reminder.is_zero() {
+                reminder * rhs.b
+            } else {
+                VectorN::<S, D>::from_fn(|_, _| S::nan())
+            },
+        }
+    }
+}
 
 /* Should be
  * impl<S, D> Mul<Dual<S, D>> for S
@@ -152,7 +193,13 @@ where
         write!(f, "{}", self.a)?;
         for (index, num) in self.b.into_iter().enumerate() {
             let sign = if num.is_sign_negative() { '-' } else { '+' };
-            write!(f, " {} {}\u{03B5}{}", sign, num.abs(), char::from_u32(0x2080 + index as u32).unwrap_or('\u{2099}'))?;
+            write!(
+                f,
+                " {} {}\u{03B5}{}",
+                sign,
+                num.abs(),
+                char::from_u32(0x2080 + index as u32).unwrap_or('\u{2099}')
+            )?;
         }
         Ok(())
     }
@@ -242,7 +289,7 @@ where
     DefaultAllocator: Allocator<S, D>,
 {
     fn from<T: num::cast::ToPrimitive>(n: T) -> Option<Self> {
-        S::from(n).map(|s : S| -> Dual<S, D> {
+        S::from(n).map(|s: S| -> Dual<S, D> {
             Dual {
                 a: s,
                 b: VectorN::<S, D>::zeros(),
@@ -271,9 +318,9 @@ where
 
 impl<S, D> num::identities::One for Dual<S, D>
 where
-    S: Debug + Float + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    S: Debug + Float + Mul<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
     D: Dim + DimName,
-    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    VectorN<S, D>: Add<VectorN<S, D>, Output = VectorN<S, D>> + Copy,
     DefaultAllocator: Allocator<S, D>,
 {
     fn one() -> Self {
@@ -281,5 +328,32 @@ where
             a: S::one(),
             b: VectorN::<S, D>::zeros(),
         }
+    }
+}
+
+impl<S, D, E> Num for Dual<S, D>
+where
+    S: Num<FromStrRadixErr = E>
+        + Float
+        + Debug
+        + Display
+        + Mul<VectorN<S, D>, Output = VectorN<S, D>>
+        + Copy
+        + AddAssign
+        + DivAssign
+        + SubAssign,
+    D: Dim + DimName,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    type FromStrRadixErr = E;
+
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+        S::from_str_radix(str, radix).map(|s: S| -> Dual<S, D> {
+            Dual {
+                a: s,
+                b: VectorN::<S, D>::zeros(),
+            }
+        })
     }
 }
