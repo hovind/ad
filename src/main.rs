@@ -13,15 +13,9 @@ use std::{char, f64, fmt};
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
 where
-    S: Add<S, Output = S>
-        + Mul<S, Output = S>
-        + Sub<S, Output = S>
-        + Debug
-        + Copy
-        + PartialEq
-        + 'static,
+    S: Copy + Debug + Float + 'static,
 {
-    VectorN::<S, U3>::new(x[0] + x[1], x[0] * x[1], x[0] - x[1])
+    VectorN::<S, U3>::new(x[0] + x[1], x[0] * x[1], (x[0] - x[1] * x[1]).sin())
 }
 
 fn main() {
@@ -555,10 +549,16 @@ where
         unimplemented!();
     }
     fn sin(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.sin(),
+            b: self.a.cos() * self.b,
+        }
     }
     fn cos(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.cos(),
+            b: -self.a.sin() * self.b,
+        }
     }
     fn tan(self) -> Self {
         unimplemented!();
