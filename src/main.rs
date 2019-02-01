@@ -576,7 +576,10 @@ where
         }
     }
     fn tan(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.tan(),
+            b: self.b / self.a.cos() / self.a.cos(),
+        }
     }
     fn asin(self) -> Self {
         unimplemented!();
@@ -614,13 +617,22 @@ where
         unimplemented!();
     }
     fn sinh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.sinh(),
+            b: self.a.cosh() * self.b,
+        }
     }
     fn cosh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.cosh(),
+            b: self.a.sinh() * self.b,
+        }
     }
     fn tanh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.tanh(),
+            b: (S::one() - self.a.tanh() * self.a.tanh()) * self.b,
+        }
     }
     fn asinh(self) -> Self {
         unimplemented!();
