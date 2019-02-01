@@ -8,7 +8,7 @@ use na::{DefaultAllocator, Dim, VectorN};
 use num::{Float, Num};
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Rem, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Neg, Rem, Sub, SubAssign};
 use std::{char, f64, fmt};
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
@@ -392,68 +392,119 @@ where
     fn nan() -> Self {
         Dual {
             a: S::nan(),
-            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+            b: VectorN::<S, D>::zeros(),
         }
     }
     fn infinity() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::infinity(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn neg_infinity() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::neg_infinity(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn neg_zero() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::neg_zero(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn min_value() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::min_value(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn min_positive_value() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::min_positive_value(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn max_value() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::max_value(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn is_nan(self) -> bool {
-        unimplemented!();
+        self.a.is_nan()
     }
     fn is_infinite(self) -> bool {
-        unimplemented!();
+        self.a.is_infinite()
     }
     fn is_finite(self) -> bool {
-        unimplemented!();
+        self.a.is_finite()
     }
     fn is_normal(self) -> bool {
-        unimplemented!();
+        self.a.is_normal()
     }
     fn classify(self) -> core::num::FpCategory {
-        unimplemented!();
+        self.a.classify()
     }
     fn floor(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.floor(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
     }
     fn ceil(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.ceil(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
     }
     fn round(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.round(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
     }
     fn trunc(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.trunc(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
     }
     fn fract(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.fract(),
+            b: VectorN::<S, D>::from_fn(|_, _| S::nan()),
+        }
     }
     fn abs(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.abs(),
+            b: if self.a.is_sign_positive() {
+                self.b
+            } else if self.a.is_sign_negative() {
+                -self.b
+            } else {
+                VectorN::<S, D>::from_fn(|_, _| S::nan())
+            },
+        }
     }
     fn signum(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.signum(),
+            b: VectorN::<S, D>::from_fn(|_, _| {
+                if self.a.is_zero() {
+                    S::nan()
+                } else {
+                    S::zero()
+                }
+            }),
+        }
     }
     fn is_sign_positive(self) -> bool {
-        unimplemented!();
+        self.a.is_sign_positive()
     }
     fn is_sign_negative(self) -> bool {
-        unimplemented!();
+        self.a.is_sign_negative()
     }
     fn mul_add(self, a: Self, b: Self) -> Self {
         unimplemented!();
