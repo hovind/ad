@@ -504,19 +504,32 @@ where
         unimplemented!();
     }
     fn recip(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.recip(),
+            b: -self.b / self.a / self.a,
+        }
     }
+    /* TODO: This `unwrap` feels rather unsafe, how should I do it? */
     fn powi(self, n: i32) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.powi(n),
+            b: S::from(n).unwrap() * self.a.powi(n-1) * self.b,
+        }
     }
     fn powf(self, n: Self) -> Self {
         unimplemented!();
     }
     fn sqrt(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.sqrt(),
+            b: self.a.sqrt().recip() * self.b,
+        }
     }
     fn exp(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.exp(),
+            b: self.a.exp() * self.b,
+        }
     }
     fn exp2(self) -> Self {
         unimplemented!();
@@ -576,7 +589,11 @@ where
         unimplemented!();
     }
     fn atan2(self, other: Self) -> Self {
-        unimplemented!();
+        let squared_distance = self.a * self.a + other.a * other.a;
+        Dual {
+            a: self.a.atan2(other.a),
+            b: -other.a / squared_distance * self.b + self.a / squared_distance * other.b,
+        }
     }
     fn sin_cos(self) -> (Self, Self) {
         unimplemented!();
@@ -609,7 +626,10 @@ where
         self.a.integer_decode()
     }
     fn epsilon() -> Self {
-        unimplemented!();
+        Dual {
+            a: S::epsilon(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
     fn to_degrees(self) -> Self {
         unimplemented!();
