@@ -596,7 +596,16 @@ where
         }
     }
     fn sin_cos(self) -> (Self, Self) {
-        unimplemented!();
+        let (sin, cos) = self.a.sin_cos();
+        ( Dual {
+            a: sin,
+            b: cos * self.b,
+        }
+        , Dual {
+            a: cos,
+            b: -sin * self.b,
+        }
+        )
     }
     fn exp_m1(self) -> Self {
         unimplemented!();
