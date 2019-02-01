@@ -332,7 +332,6 @@ where
         + Debug
         + Display
         + Mul<VectorN<S, D>, Output = VectorN<S, D>>
-        + Copy
         + AddAssign
         + DivAssign
         + SubAssign,
@@ -513,7 +512,7 @@ where
     fn powi(self, n: i32) -> Self {
         Dual {
             a: self.a.powi(n),
-            b: S::from(n).unwrap() * self.a.powi(n-1) * self.b,
+            b: S::from(n).unwrap() * self.a.powi(n - 1) * self.b,
         }
     }
     fn powf(self, n: Self) -> Self {
@@ -597,14 +596,15 @@ where
     }
     fn sin_cos(self) -> (Self, Self) {
         let (sin, cos) = self.a.sin_cos();
-        ( Dual {
-            a: sin,
-            b: cos * self.b,
-        }
-        , Dual {
-            a: cos,
-            b: -sin * self.b,
-        }
+        (
+            Dual {
+                a: sin,
+                b: cos * self.b,
+            },
+            Dual {
+                a: cos,
+                b: -sin * self.b,
+            },
         )
     }
     fn exp_m1(self) -> Self {

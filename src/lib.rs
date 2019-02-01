@@ -3,7 +3,6 @@ use std::fmt;
 use std::ops::Add;
 use std::ops::Mul;
 
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Dual {
     a: f64,
@@ -20,7 +19,7 @@ impl Dual {
     pub fn new(value: f64) -> Dual {
         Dual {
             a: value,
-            b: 1.0f64
+            b: 1.0f64,
         }
     }
 }
@@ -42,11 +41,10 @@ impl Add<f64> for Dual {
     fn add(self, rhs: f64) -> Dual {
         Dual {
             a: self.a + rhs,
-            b: self.b
+            b: self.b,
         }
     }
 }
-
 
 impl Mul for Dual {
     type Output = Self;
@@ -85,4 +83,3 @@ impl Mul<Dual> for f64 {
         rhs * self
     }
 }
-
