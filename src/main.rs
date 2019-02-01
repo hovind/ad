@@ -5,11 +5,11 @@ extern crate alga as al;
 use std::{f64, char, fmt};
 use std::fmt::{Debug, Display};
 use std::cmp::PartialEq;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 use na::{DefaultAllocator, Dim, VectorN};
 use na::allocator::Allocator;
 use na::dimension::*;
-use num::Float;
+use num::{Float, Num};
 
 fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
 where
@@ -248,5 +248,38 @@ where
                 b: VectorN::<S, D>::zeros(),
             }
         })
+    }
+}
+
+impl<S, D> num::identities::Zero for Dual<S, D>
+where
+    S: Float + Debug + Display + Copy + AddAssign,
+    D: Dim + DimName,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn zero() -> Self {
+        Dual {
+            a: S::zero(),
+            b: VectorN::<S, D>::zeros(),
+        }
+    }
+    fn is_zero(&self) -> bool {
+        self.a.is_zero()
+    }
+}
+
+impl<S, D> num::identities::One for Dual<S, D>
+where
+    S: Debug + Float + Mul<VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    D: Dim + DimName,
+    VectorN<S, D>: Add <VectorN<S, D>, Output=VectorN<S, D>> + Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn one() -> Self {
+        Dual {
+            a: S::one(),
+            b: VectorN::<S, D>::zeros(),
+        }
     }
 }
