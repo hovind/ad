@@ -169,3 +169,84 @@ where
         self.a.partial_cmp(&other.a)
     }
 }
+
+impl<S, D> num::cast::ToPrimitive for Dual<S, D>
+where
+    S: Float + Debug + Display + Copy,
+    D: Dim,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn to_i64(&self) -> Option<i64> {
+        self.a.to_i64()
+    }
+
+    fn to_u64(&self) -> Option<u64> {
+        self.a.to_u64()
+    }
+
+    fn to_isize(&self) -> Option<isize> {
+        self.a.to_isize()
+    }
+
+    fn to_i8(&self) -> Option<i8> {
+        self.a.to_i8()
+    }
+
+    fn to_i16(&self) -> Option<i16> {
+        self.a.to_i16()
+    }
+
+    fn to_i32(&self) -> Option<i32> {
+        self.a.to_i32()
+    }
+
+    fn to_i128(&self) -> Option<i128> {
+        self.a.to_i128()
+    }
+
+    fn to_usize(&self) -> Option<usize> {
+        self.a.to_usize()
+    }
+
+    fn to_u8(&self) -> Option<u8> {
+        self.a.to_u8()
+    }
+
+    fn to_u16(&self) -> Option<u16> {
+        self.a.to_u16()
+    }
+
+    fn to_u32(&self) -> Option<u32> {
+        self.a.to_u32()
+    }
+
+    fn to_u128(&self) -> Option<u128> {
+        self.a.to_u128()
+    }
+
+    fn to_f32(&self) -> Option<f32> {
+        self.a.to_f32()
+    }
+
+    fn to_f64(&self) -> Option<f64> {
+        self.a.to_f64()
+    }
+}
+
+impl<S, D> num::cast::NumCast for Dual<S, D>
+where
+    S: Float + Debug + Display + Copy,
+    D: Dim + DimName,
+    VectorN<S, D>: Copy,
+    DefaultAllocator: Allocator<S, D>,
+{
+    fn from<T: num::cast::ToPrimitive>(n: T) -> Option<Self> {
+        S::from(n).map(|s : S| -> Dual<S, D> {
+            Dual {
+                a: s,
+                b: VectorN::<S, D>::zeros(),
+            }
+        })
+    }
+}
