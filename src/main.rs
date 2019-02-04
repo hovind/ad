@@ -499,7 +499,7 @@ where
     fn is_sign_negative(self) -> bool {
         self.a.is_sign_negative()
     }
-    fn mul_add(self, a: Self, b: Self) -> Self {
+    fn mul_add(self, _a: Self, _b: Self) -> Self {
         unimplemented!();
     }
     fn recip(self) -> Self {
@@ -508,20 +508,19 @@ where
             b: -self.b / self.a / self.a,
         }
     }
-    /* TODO: This `unwrap` feels rather unsafe, how should I do it? */
     fn powi(self, n: i32) -> Self {
         Dual {
             a: self.a.powi(n),
-            b: S::from(n).unwrap() * self.a.powi(n - 1) * self.b,
+            b: S::from(n).unwrap_or(S::nan()) * self.a.powi(n - 1) * self.b,
         }
     }
-    fn powf(self, n: Self) -> Self {
+    fn powf(self, _n: Self) -> Self {
         unimplemented!();
     }
     fn sqrt(self) -> Self {
         Dual {
             a: self.a.sqrt(),
-            b: self.a.sqrt().recip() * self.b,
+            b: self.b / ((S::one() + S::one()) * self.a.sqrt()),
         }
     }
     fn exp(self) -> Self {
@@ -539,7 +538,7 @@ where
             b: self.b / self.a,
         }
     }
-    fn log(self, base: Self) -> Self {
+    fn log(self, _base: Self) -> Self {
         unimplemented!();
     }
     fn log2(self) -> Self {
@@ -548,19 +547,22 @@ where
     fn log10(self) -> Self {
         unimplemented!();
     }
-    fn max(self, other: Self) -> Self {
+    fn max(self, _other: Self) -> Self {
         unimplemented!();
     }
-    fn min(self, other: Self) -> Self {
+    fn min(self, _other: Self) -> Self {
         unimplemented!();
     }
     fn abs_sub(self, other: Self) -> Self {
-        unimplemented!();
+        (self - other).abs()
     }
     fn cbrt(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.cbrt(),
+            b: self.b / ((S::one() + S::one() + S::one()) * self.a.cbrt() * self.a.cbrt()),
+        }
     }
-    fn hypot(self, other: Self) -> Self {
+    fn hypot(self, _other: Self) -> Self {
         unimplemented!();
     }
     fn sin(self) -> Self {
@@ -582,13 +584,22 @@ where
         }
     }
     fn asin(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.asin(),
+            b: self.b / (S::one() - self.a * self.a).sqrt(),
+        }
     }
     fn acos(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.asin(),
+            b: -self.b / (S::one() - self.a * self.a).sqrt(),
+        }
     }
     fn atan(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.atan(),
+            b: self.b / (S::one() + self.a * self.a),
+        }
     }
     fn atan2(self, other: Self) -> Self {
         let squared_distance = self.a * self.a + other.a * other.a;
@@ -611,10 +622,16 @@ where
         )
     }
     fn exp_m1(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.exp_m1(),
+            b: self.a.exp() * self.b,
+        }
     }
     fn ln_1p(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.ln_1p(),
+            b: self.b / (self.a + S::one()),
+        }
     }
     fn sinh(self) -> Self {
         Dual {
@@ -635,13 +652,22 @@ where
         }
     }
     fn asinh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.asinh(),
+            b: self.b / (self.a * self.a + S::one()).sqrt(),
+        }
     }
     fn acosh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.acosh(),
+            b: self.b / (self.a * self.a - S::one()).sqrt(),
+        }
     }
     fn atanh(self) -> Self {
-        unimplemented!();
+        Dual {
+            a: self.a.atanh(),
+            b: self.b / (S::one() - self.a * self.a),
+        }
     }
     fn integer_decode(self) -> (u64, i16, i8) {
         self.a.integer_decode()
