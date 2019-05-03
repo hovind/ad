@@ -11,17 +11,18 @@ use std::fmt::{Debug, Display};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Neg, Rem, Sub, SubAssign};
 use std::{char, f64, fmt};
 
-fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U3>
+fn f<S>(x: VectorN<S, U2>) -> VectorN<S, U1>
 where
     S: Copy + Debug + Float + 'static,
 {
-    VectorN::<S, U3>::new(x[0] + x[1], x[0] * x[1], (x[0] - x[1] * x[1]).sin())
+    VectorN::<S, U1>::new((x[0] + x[1] * x[1]).sin())
 }
 
 fn main() {
     let x = VectorN::<f64, U2>::new(1.0f64, 2.0f64);
     let dx = Dual::<f64, U2>::new(x);
-    let y = f(dx);
+    let ddx = Dual::<Dual<f64, U2>, U2>::new(dx);
+    let y = f(ddx);
     println!("{}", y);
 }
 
