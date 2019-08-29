@@ -4,6 +4,4 @@ version = "0.1.0"
 authors = ["Øystein Hovind <oystein.hovind@folq.no>"]
 
 [dependencies]
-num-traits = "0.2"
-nalgebra = "0.16"
-alga = "0.7"
+aljabar = { git = "https://github.com/hovind/aljabar", branch = "indexed_map" }
