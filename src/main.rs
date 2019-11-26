@@ -253,3 +253,19 @@ where
         )
     }
 }
+
+impl<T, const N: usize> Zero for Dual<T, { N }>
+where
+    T : Copy + Debug + Real + Zero,
+{
+    fn zero() -> Self {
+        Dual {
+            a: T::zero(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+
+    fn is_zero(&self) -> bool {
+        self.a.is_zero()
+    }
+}
