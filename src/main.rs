@@ -254,6 +254,23 @@ where
     }
 }
 
+impl<T, const N: usize> One for Dual<T, { N }>
+where
+    T : Copy + Debug + Real + One,
+    Vector<T, { N }> : Zero,
+{
+    fn one() -> Self {
+        Dual {
+            a: T::one(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+
+    fn is_one(&self) -> bool {
+        self.a.is_one()
+    }
+}
+
 impl<T, const N: usize> Zero for Dual<T, { N }>
 where
     T : Copy + Debug + Real + Zero,
