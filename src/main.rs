@@ -18,7 +18,7 @@ where
 fn main() {
     let x = Dual::new(vector!(1.0f64, 2.0));
     let y = f(x);
-    println!("{:?}", y);
+    println!("{}", Dual::from(y));
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -31,6 +31,15 @@ where
     b: Vector<T, { N }>,
 }
 
+impl <T, const N: usize> From<Vector<Dual<T, { N }>, 1>> for Dual<T, { N }>
+where
+    T: Copy + Debug + Real + 'static,
+{
+    fn from(u : Vector<Dual<T, { N }>, 1>) -> Self {
+        u.x()
+    }
+
+}
 
 impl<T, const N: usize> Dual<T, { N }>
 where
