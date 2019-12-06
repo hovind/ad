@@ -41,6 +41,23 @@ where
 
 }
 
+fn indicator<T, F>(f : F, t: T) -> T
+where
+    F: Fn(T) -> bool,
+    T: One + Zero,
+{
+    if f(t) { T::one() } else { T::zero() }
+}
+
+fn unit<T, const N: usize>(i : usize) -> Vector<T, { N }>
+where
+    T : One + Zero,
+{
+    let mut u = Vector::<T, { N }>::zero();
+    u[i] = T::one();
+    u
+}
+
 impl<T, const N: usize> Dual<T, { N }>
 where
     T: Copy + Debug + Real + One + Zero,
@@ -49,11 +66,9 @@ where
 {
     pub fn new(v: Vector<T, { N }>) -> Vector<Dual<T, { N }>, { N }> {
         v.indexed_map(|i: usize, x: T| -> Dual<T, { N }> {
-            let mut u = Vector::<T, { N }>::zero();
-            u[i] = T::one();
             Dual {
                 a: x,
-                b: u,
+                b: unit(i),
             }
         })
     }
