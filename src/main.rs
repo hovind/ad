@@ -2,7 +2,7 @@
 
 extern crate aljabar as al;
 
-use al::{vector, Vector, One, Real, Zero, Angle};
+use al::{vector, Matrix, Vector, One, Real, Zero, Angle};
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
@@ -16,9 +16,10 @@ where
 }
 
 fn main() {
-    let x = Dual::new(vector!(1.0f64, 2.0));
-    let y = f(x);
-    println!("{}", Dual::from(y));
+    let x = Dual::jacobian(vector!(1.0f64, 2.0));
+    let dx = Dual::hessian(vector!(1.0f64, 2.0));
+    let y = Dual::from(f(dx));
+    println!("{:?}", y);
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -63,11 +64,22 @@ where
     Vector<T, { N }>: Copy,
     Vector<Dual<T, { N }>, { N }>: Copy,
 {
-    pub fn new(v: Vector<T, { N }>) -> Vector<Dual<T, { N }>, { N }> {
+    pub fn jacobian(v: Vector<T, { N }>) -> Vector<Dual<T, { N }>, { N }> {
         v.indexed_map(|i: usize, x: T| -> Dual<T, { N }> {
             Dual {
                 a: x,
                 b: unit(i),
+            }
+        })
+    }
+    pub fn hessian(v: Vector<T, { N }>) -> Vector<Dual<Dual<T, { N }>, { N }>, { N }> {
+        v.indexed_map(|i: usize, x: T| -> Dual<Dual<T, { N }>, { N }> {
+            Dual {
+                a: Dual {
+                    a: x,
+                    b: unit(i),
+                },
+                b: unit::<Dual<T, { N }>, N>(i),
             }
         })
     }
