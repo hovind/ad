@@ -19,7 +19,7 @@ fn main() {
     let x = Dual::jacobian(vector!(1.0f64, 2.0));
     let dx = Dual::hessian(vector!(1.0f64, 2.0));
     let y = Dual::hessian_values(Dual::from(f(dx)));
-    println!("{:?}", y);
+    println!("{:?}", y.2);
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
