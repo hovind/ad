@@ -41,12 +41,11 @@ where
 
 }
 
-fn indicator<T, F>(f : F, t: T) -> T
+fn indicator<T>(condition : bool) -> T
 where
-    F: Fn(T) -> bool,
     T: One + Zero,
 {
-    if f(t) { T::one() } else { T::zero() }
+    if condition { T::one() } else { T::zero() }
 }
 
 fn unit<T, const N: usize>(i : usize) -> Vector<T, { N }>
