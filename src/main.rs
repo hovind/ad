@@ -18,7 +18,7 @@ where
 fn main() {
     let x = Dual::jacobian(vector!(1.0f64, 2.0));
     let dx = Dual::hessian(vector!(1.0f64, 2.0));
-    let y = Dual::from(f(dx));
+    let y = Dual::hessian_values(Dual::from(f(dx)));
     println!("{:?}", y);
 }
 
@@ -82,6 +82,14 @@ where
                 b: unit::<Dual<T, { N }>, N>(i),
             }
         })
+    }
+
+    pub fn hessian_values(v : Dual<Dual<T, { N }>, { N }>) -> (T, Vector<T, { N }>, Matrix<T, { N }, { N }>) {
+        let rows : [[T; { N }]; { N }] = Vector::into(v.b.map(|u : Dual<T, { N }>| -> [T; { N }] { Vector::into(u.b) }));
+        (v.a.a,
+         v.a.b,
+         Matrix::from(rows),
+        )
     }
 }
 
