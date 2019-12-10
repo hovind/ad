@@ -9,7 +9,7 @@ mod tests {
     fn hessian() {
         fn f<T>(x: Vector<T, 2>) -> Vector<T, 1>
         where
-            T: Copy + Debug + Real + Angle + 'static,
+            T: 'static + Copy + Debug + Float,
         {
             vector!((x[0] + x[1] * x[1]).sin())
         }
@@ -28,19 +28,24 @@ mod tests {
 }
 
 extern crate aljabar as al;
+extern crate num_traits as num;
 
-use al::{Matrix, Vector, One, Real, Zero, Angle};
-use std::cmp::PartialEq;
-use std::fmt::{Debug, Display};
-use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use std::{char, fmt};
 
+use al::{Matrix, Vector};
+use num::{
+    Float,
+    identities::{One,Zero}
+};
+use std::{
+    char,
+    fmt,
+    cmp::PartialEq,
+    fmt::{Debug, Display},
+    ops::{Add, Div, Mul, Neg, Rem, Sub},
+};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Dual<T, const N: usize>
-where
-    /* What is a static type parameter? */
-    T: Copy + Debug + Real + 'static,
 {
     a: T,
     b: Vector<T, { N }>,
@@ -48,7 +53,7 @@ where
 
 impl <T, const N: usize> From<Vector<Dual<T, { N }>, 1>> for Dual<T, { N }>
 where
-    T: Copy + Debug + Real + 'static,
+    T: Clone,
 {
     fn from(u : Vector<Dual<T, { N }>, 1>) -> Self {
         u.x()
@@ -67,8 +72,8 @@ where
 
 impl<T, const N: usize> Dual<T, { N }>
 where
-    T: Copy + Debug + Real + One + Zero,
-    Vector<T, { N }>: Copy,
+    T: Copy + Debug + PartialEq + One + Zero,
+    Vector<T, { N }>: Copy + Zero,
     Vector<Dual<T, { N }>, { N }>: Copy,
 {
     pub fn jacobian(v: Vector<T, { N }>) -> Vector<Dual<T, { N }>, { N }> {
@@ -102,8 +107,8 @@ where
 
 impl<T, const N: usize> Add for Dual<T, { N }>
 where
-    T: Copy + Debug + Real,
-    Vector<T, { N }>: Add<Vector<T, { N }>, Output = Vector<T, { N }>> + Copy + Clone,
+    T: Copy + Add<T, Output = T>,
+    Vector<T, { N }>: Add<Vector<T, { N }>, Output = Vector<T, { N }>>,
 {
     type Output = Self;
 
@@ -116,8 +121,8 @@ where
 }
 impl<T, const N: usize> Sub for Dual<T, { N }>
 where
-    T: Copy + Debug + Real,
-    Vector<T, { N }>: Sub<Vector<T, { N }>, Output = Vector<T, { N }>> + Copy + Clone,
+    T: Copy + Sub<T, Output = T>,
+    Vector<T, { N }>: Sub<Vector<T, { N }>, Output = Vector<T, { N }>>,
 {
     type Output = Self;
 
@@ -131,8 +136,8 @@ where
 
 impl<T, const N: usize> Mul for Dual<T, { N }>
 where
-    T: Copy + Debug + Real,
-    Vector<T, { N }>: Add<Vector<T, { N }>, Output = Vector<T, { N }>> + Copy,
+    T: Copy + Mul<T, Output = T>,
+    Vector<T, { N }>: Add<Vector<T, { N }>, Output = Vector<T, { N }>>,
 {
     type Output = Self;
 
@@ -146,9 +151,8 @@ where
 
 impl<T, const N: usize> Div for Dual<T, { N }>
 where
-    T: Copy + Debug + Real,
-    Vector<T, { N }>: Copy + Clone
-                    + Sub<Vector<T, { N }>, Output = Vector<T, { N }>>
+    T: Copy + Div<T, Output = T>,
+    Vector<T, { N }>: Sub<Vector<T, { N }>, Output = Vector<T, { N }>>
                     + Div<T, Output = Vector<T, { N }>>
                     + Mul<T, Output = Vector<T, { N }>>,
 {
@@ -164,8 +168,8 @@ where
 
 impl<T, const N: usize> Rem for Dual<T, { N }>
 where
-    T: Copy + Debug + Real + Rem<T, Output = T> + Zero,
-    Vector<T, { N }>: Copy + Clone + Add<Vector<T, { N }>, Output = Vector<T, { N }>>,
+    T: Copy + Zero + Rem<T, Output = T>,
+    Vector<T, { N }>: Mul<T, Output = Vector<T, { N }>>,
 {
     type Output = Self;
 
@@ -180,8 +184,8 @@ where
 
 impl<T, const N: usize> Mul<T> for Dual<T, { N }>
 where
-    Vector<T, { N }>: Copy,
-    T: Copy + Debug + Mul<Vector<T, { N }>, Output = Vector<T, { N }>> + Real,
+    T: Copy + Mul<T, Output = T>,
+    Vector<T, { N }>: Mul<T, Output = Vector<T, { N }>>,
 {
     type Output = Dual<T, { N }>;
 
@@ -195,14 +199,14 @@ where
 
 impl<T, const N: usize> Display for Dual<T, { N }>
 where
-    T: Copy + Debug + Display + PartialOrd + Real + Zero,
+    T: Copy + Debug + Display + Neg<Output = T> + PartialOrd + Zero,
     Vector<T, { N }>: Copy,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.a)?;
-        for (index, num) in self.b.into_iter().enumerate() {
+        for (index, &num) in self.b.iter().enumerate() {
             /* Do something less awkward here */
-            let (sign, num) = if *num < T::zero() { ('-', -(*num)) } else { ('+', *num) };
+            let (sign, num) = if num < T::zero() { ('-', -num) } else { ('+', num) };
             write!(
                 f,
                 " {} {}\u{03B5}{}",
@@ -217,8 +221,7 @@ where
 
 impl<T, const N: usize> std::cmp::PartialOrd for Dual<T, { N }>
 where
-    T: Copy + Debug + Display + PartialOrd + Real,
-    Vector<T, { N }>: Copy,
+    T: PartialOrd,
 {
     fn partial_cmp(&self, other: &Dual<T, { N }>) -> Option<std::cmp::Ordering> {
         self.a.partial_cmp(&other.a)
@@ -228,8 +231,7 @@ where
 
 impl<T, const N: usize> Neg for Dual<T, { N }>
 where
-    T: Copy + Debug + Real,
-    Vector<T, { N }>: Copy,
+    T: Neg<Output = T>,
 {
     type Output = Dual<T, { N }>;
 
@@ -241,29 +243,317 @@ where
     }
 }
 
-impl<T, const N: usize> Real for Dual<T, { N }>
+impl<T, const N: usize> One for Dual<T, { N }>
 where
-    T: Copy + Debug + One + Real,
-    Vector<T, { N }>: Copy,
+    T : Copy + PartialEq + One,
+    Vector<T, { N }> : Zero,
 {
+    fn one() -> Self {
+        Dual {
+            a: T::one(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+
+    fn is_one(&self) -> bool {
+        self.a.is_one()
+    }
+}
+
+impl<T, const N: usize> Zero for Dual<T, { N }>
+where
+    T : Copy + Zero,
+    Vector<T, { N }> : Zero,
+{
+    fn zero() -> Self {
+        Dual {
+            a: T::zero(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+
+    fn is_zero(&self) -> bool {
+        self.a.is_zero()
+    }
+}
+
+impl<T, const N: usize> num::cast::ToPrimitive for Dual<T, { N }>
+where
+    T: num::cast::ToPrimitive,
+{
+    fn to_i64(&self) -> Option<i64> {
+        self.a.to_i64()
+    }
+
+    fn to_u64(&self) -> Option<u64> {
+        self.a.to_u64()
+    }
+
+    fn to_isize(&self) -> Option<isize> {
+        self.a.to_isize()
+    }
+
+    fn to_i8(&self) -> Option<i8> {
+        self.a.to_i8()
+    }
+
+    fn to_i16(&self) -> Option<i16> {
+        self.a.to_i16()
+    }
+
+    fn to_i32(&self) -> Option<i32> {
+        self.a.to_i32()
+    }
+
+    fn to_i128(&self) -> Option<i128> {
+        self.a.to_i128()
+    }
+
+    fn to_usize(&self) -> Option<usize> {
+        self.a.to_usize()
+    }
+
+    fn to_u8(&self) -> Option<u8> {
+        self.a.to_u8()
+    }
+
+    fn to_u16(&self) -> Option<u16> {
+        self.a.to_u16()
+    }
+
+    fn to_u32(&self) -> Option<u32> {
+        self.a.to_u32()
+    }
+
+    fn to_u128(&self) -> Option<u128> {
+        self.a.to_u128()
+    }
+
+    fn to_f32(&self) -> Option<f32> {
+        self.a.to_f32()
+    }
+
+    fn to_f64(&self) -> Option<f64> {
+        self.a.to_f64()
+    }
+}
+
+impl<T, const N: usize> num::cast::NumCast for Dual<T, { N }>
+where
+    T: num::cast::NumCast,
+    Vector<T, { N }>: Zero,
+{
+    fn from<S: num::cast::ToPrimitive>(n: S) -> Option<Self> {
+        T::from(n).map(|t : T| -> Self {
+            Dual {
+                a: t,
+                b: Vector::<T, { N }>::zero(),
+            }
+        })
+    }
+}
+
+impl<T, E, const N: usize> num::Num for Dual<T, { N }> where
+    T: Copy + num::Num<FromStrRadixErr = E>
+{
+    type FromStrRadixErr = E;
+
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+        T::from_str_radix(str, radix).map(|t : T| -> Self {
+            Dual {
+                a: t,
+                b: Vector::<T, { N }>::zero(),
+            }
+        })
+    }
+}
+
+impl<T, const N: usize> Float for Dual<T, { N }> where
+    T: Float,
+{
+    fn nan() -> Self {
+        Dual {
+            a: T::nan(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn infinity() -> Self {
+        Dual {
+            a: T::infinity(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn neg_infinity() -> Self {
+        Dual {
+            a: T::neg_infinity(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn neg_zero() -> Self {
+        Dual {
+            a: T::neg_zero(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn min_value() -> Self {
+        Dual {
+            a: T::min_value(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn min_positive_value() -> Self {
+        Dual {
+            a: T::min_positive_value(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn max_value() -> Self {
+        Dual {
+            a: T::max_value(),
+            b: Vector::<T, { N }>::zero(),
+        }
+    }
+    fn is_nan(self) -> bool {
+        self.a.is_nan()
+    }
+    fn is_infinite(self) -> bool {
+        self.a.is_infinite()
+    }
+    fn is_finite(self) -> bool {
+        self.a.is_finite()
+    }
+    fn is_normal(self) -> bool {
+        self.a.is_normal()
+    }
+    fn classify(self) -> core::num::FpCategory {
+        self.a.classify()
+    }
+    fn floor(self) -> Self {
+        Dual {
+            a: self.a.floor(),
+            b: Vector::<T, { N }>::from_fn(|_| T::nan()),
+        }
+    }
+    fn ceil(self) -> Self {
+        Dual {
+            a: self.a.ceil(),
+            b: Vector::<T, { N }>::from_fn(|_| T::nan()),
+        }
+    }
+    fn round(self) -> Self {
+        Dual {
+            a: self.a.round(),
+            b: Vector::<T, { N }>::from_fn(|_| T::nan()),
+        }
+    }
+    fn trunc(self) -> Self {
+        Dual {
+            a: self.a.trunc(),
+            b: Vector::<T, { N }>::from_fn(|_| T::nan()),
+        }
+    }
+    fn fract(self) -> Self {
+        Dual {
+            a: self.a.fract(),
+            b: Vector::<T, { N }>::from_fn(|_| T::nan()),
+        }
+    }
+    fn abs(self) -> Self {
+        Dual {
+            a: self.a.abs(),
+            b: if self.a.is_sign_positive() {
+                self.b
+            } else if self.a.is_sign_negative() {
+                -self.b
+            } else {
+                Vector::<T, { N }>::from_fn(|_| T::nan())
+            },
+        }
+    }
+    fn signum(self) -> Self {
+        Dual {
+            a: self.a.signum(),
+            b: Vector::<T, { N }>::from_fn(|_| {
+                if self.a.is_zero() {
+                    T::nan()
+                } else {
+                    T::zero()
+                }
+            }),
+        }
+    }
+    fn is_sign_positive(self) -> bool {
+        self.a.is_sign_positive()
+    }
+    fn is_sign_negative(self) -> bool {
+        self.a.is_sign_negative()
+    }
+    fn mul_add(self, _a: Self, _b: Self) -> Self {
+        unimplemented!();
+    }
+    fn recip(self) -> Self {
+        Dual {
+            a: self.a.recip(),
+            b: -self.b / self.a / self.a,
+        }
+    }
+    fn powi(self, n: i32) -> Self {
+        Dual {
+            a: self.a.powi(n),
+            b: self.b * T::from(n).unwrap_or_else(T::nan) * self.a.powi(n - 1),
+        }
+    }
+    fn powf(self, _n: Self) -> Self {
+        unimplemented!();
+    }
     fn sqrt(self) -> Self {
         Dual {
             a: self.a.sqrt(),
             b: self.b / ((T::one() + T::one()) * self.a.sqrt()),
         }
     }
-
-    fn mul2(self) -> Self { unimplemented!() }
-
-    fn div2(self) -> Self { unimplemented!() }
-}
-
-impl<T, const N: usize> Angle for Dual<T, { N }>
-where
-    T: Copy + Debug + Angle + One + Real,
-    Vector<T, { N }>: Copy,
-{
-
+    fn exp(self) -> Self {
+        Dual {
+            a: self.a.exp(),
+            b: self.b * self.a.exp(),
+        }
+    }
+    fn exp2(self) -> Self {
+        unimplemented!();
+    }
+    fn ln(self) -> Self {
+        Dual {
+            a: self.a.ln(),
+            b: self.b / self.a,
+        }
+    }
+    fn log(self, _base: Self) -> Self {
+        unimplemented!();
+    }
+    fn log2(self) -> Self {
+        unimplemented!();
+    }
+    fn log10(self) -> Self {
+        unimplemented!();
+    }
+    fn max(self, _other: Self) -> Self {
+        unimplemented!();
+    }
+    fn min(self, _other: Self) -> Self {
+        unimplemented!();
+    }
+    fn abs_sub(self, other: Self) -> Self {
+        (self - other).abs()
+    }
+    fn cbrt(self) -> Self {
+        Dual {
+            a: self.a.cbrt(),
+            b: self.b / ((T::one() + T::one() + T::one()) * self.a.cbrt() * self.a.cbrt()),
+        }
+    }
+    fn hypot(self, _other: Self) -> Self {
+        unimplemented!();
+    }
     fn sin(self) -> Self {
         Dual {
             a: self.a.sin(),
@@ -280,6 +570,24 @@ where
         Dual {
             a: self.a.tan(),
             b: self.b / self.a.cos() / self.a.cos(),
+        }
+    }
+    fn asin(self) -> Self {
+        Dual {
+            a: self.a.asin(),
+            b: self.b / (T::one() - self.a * self.a).sqrt(),
+        }
+    }
+    fn acos(self) -> Self {
+        Dual {
+            a: self.a.asin(),
+            b: -self.b / (T::one() - self.a * self.a).sqrt(),
+        }
+    }
+    fn atan(self) -> Self {
+        Dual {
+            a: self.a.atan(),
+            b: self.b / (T::one() + self.a * self.a),
         }
     }
     fn atan2(self, other: Self) -> Self {
@@ -302,37 +610,67 @@ where
             },
         )
     }
-}
-
-impl<T, const N: usize> One for Dual<T, { N }>
-where
-    T : Copy + Debug + Real + One,
-    Vector<T, { N }> : Zero,
-{
-    fn one() -> Self {
+    fn exp_m1(self) -> Self {
         Dual {
-            a: T::one(),
+            a: self.a.exp_m1(),
+            b: self.b * self.a.exp(),
+        }
+    }
+    fn ln_1p(self) -> Self {
+        Dual {
+            a: self.a.ln_1p(),
+            b: self.b / (self.a + T::one()),
+        }
+    }
+    fn sinh(self) -> Self {
+        Dual {
+            a: self.a.sinh(),
+            b: self.b * self.a.cosh(),
+        }
+    }
+    fn cosh(self) -> Self {
+        Dual {
+            a: self.a.cosh(),
+            b: self.b * self.a.sinh(),
+        }
+    }
+    fn tanh(self) -> Self {
+        Dual {
+            a: self.a.tanh(),
+            b: self.b * (T::one() - self.a.tanh() * self.a.tanh()),
+        }
+    }
+    fn asinh(self) -> Self {
+        Dual {
+            a: self.a.asinh(),
+            b: self.b / (self.a * self.a + T::one()).sqrt(),
+        }
+    }
+    fn acosh(self) -> Self {
+        Dual {
+            a: self.a.acosh(),
+            b: self.b / (self.a * self.a - T::one()).sqrt(),
+        }
+    }
+    fn atanh(self) -> Self {
+        Dual {
+            a: self.a.atanh(),
+            b: self.b / (T::one() - self.a * self.a),
+        }
+    }
+    fn integer_decode(self) -> (u64, i16, i8) {
+        self.a.integer_decode()
+    }
+    fn epsilon() -> Self {
+        Dual {
+            a: T::epsilon(),
             b: Vector::<T, { N }>::zero(),
         }
     }
-
-    fn is_one(&self) -> bool {
-        self.a.is_one()
+    fn to_degrees(self) -> Self {
+        unimplemented!();
     }
-}
-
-impl<T, const N: usize> Zero for Dual<T, { N }>
-where
-    T : Copy + Debug + Real + Zero,
-{
-    fn zero() -> Self {
-        Dual {
-            a: T::zero(),
-            b: Vector::<T, { N }>::zero(),
-        }
-    }
-
-    fn is_zero(&self) -> bool {
-        self.a.is_zero()
+    fn to_radians(self) -> Self {
+        unimplemented!();
     }
 }
